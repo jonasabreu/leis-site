@@ -6,3 +6,4 @@ target
 .scala_dependencies
 classes
 .cache
+site
