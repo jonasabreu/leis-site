@@ -17,6 +17,7 @@ import org.eclipse.jgit.util.FileUtils
 object Generator extends App {
 
   val tags = "<[^>]+>".r
+  val lineStart = "(\n|^)".r
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
 
@@ -42,7 +43,7 @@ object Generator extends App {
     val ot = new CanonicalTreeParser()
     ot.reset(reader, e._2.getTree())
 
-    val diffs = git.diff().setNewTree(nt).setOldTree(ot).call().asScala
+    val diffs = git.diff().setNewTree(nt).setOldTree(ot).setContextLines(15).call().asScala
 
     (sdf.format(e._1.getAuthorIdent().getWhen()), diffs)
   }.map {
@@ -57,13 +58,13 @@ object Generator extends App {
         val writer = new PrintWriter(file)
         writer.println("---\n\n---\n\n")
         writer.println(s"$data\n\n")
-        writer.append(removeTags(new String(baos.toByteArray(), "ISO-8859-1")))
+        writer.append(corrigeDiffs(new String(baos.toByteArray(), "ISO-8859-1")))
         writer.close()
       }
   }
 
-  def removeTags(string : String) = {
-    tags.replaceAllIn(string, "")
+  def corrigeDiffs(string : String) = {
+    lineStart.replaceAllIn(tags.replaceAllIn(string, ""), "\n\t")
   }
 
 }

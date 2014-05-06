@@ -12,7 +12,7 @@ rvm use 2.1.0
 bundle update
 
 echo "rodando jekyll"
-jekyll build
+jekyll server
 
 echo "deploy"
 
