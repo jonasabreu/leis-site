@@ -1,10 +1,10 @@
-#! /bin/bash
+#! /bin/bash --login
 
 echo "Rodando gerador"
 sbt run
 
 echo "adicionando arquivos jekyll"
-mv jekyll-files/* site/.
+cp jekyll-files/* site/.
 
 echo "carregando deps jekyll e rvm"
 cd site
@@ -16,5 +16,5 @@ jekyll build
 
 echo "deploy"
 
-/home/ubuntu/bin/s3-jekyll-deploy/s3-jekyll-deploy leis.vidageek.net
+#/home/ubuntu/bin/s3-jekyll-deploy/s3-jekyll-deploy leis.vidageek.net
 

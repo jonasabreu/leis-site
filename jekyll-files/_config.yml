@@ -1,0 +1,7 @@
+url: http://leis.vidageek.net
+name: VidaGeek.net
+description: Histórico de Leis Brasileiras
+
+exclude: ['Rakefile', 'deploy.sh', 'temas', 'towrite', 'author-stats.sh', 'edicoes', 'generate.sh', 'unstash.sh', 'stash_in_weeks.sh']
+
+markdown: rdiscount

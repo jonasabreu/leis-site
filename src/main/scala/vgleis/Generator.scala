@@ -29,7 +29,7 @@ object Generator extends App {
   val repo = new FileRepositoryBuilder().setGitDir(new File(pathToRepo)).build
   val git = new Git(repo)
 
-  val commits = git.log().call().asScala.toList //.take(20)
+  val commits = git.log().call().asScala.toList.take(20)
 
   val reader = repo.newObjectReader()
 
@@ -49,12 +49,13 @@ object Generator extends App {
     case (data, diffs) =>
       println(s"generating $data")
       diffs.foreach { e =>
-        val file = new File(output, e.getNewPath + ".markdown")
+        val file = new File(output, e.getNewPath.replaceAll("""\.htm""", "") + ".markdown")
         val baos = new ByteArrayOutputStream()
         val formatter = new DiffFormatter(baos)
         formatter.setRepository(repo)
         val formattedOutput = formatter.format(e)
         val writer = new PrintWriter(file)
+        writer.println("---\n\n---\n\n")
         writer.println(s"$data\n\n")
         writer.append(removeTags(new String(baos.toByteArray(), "ISO-8859-1")))
         writer.close()
@@ -62,7 +63,7 @@ object Generator extends App {
   }
 
   def removeTags(string : String) = {
-    string
+    tags.replaceAllIn(string, "")
   }
 
 }
