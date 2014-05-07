@@ -13,6 +13,7 @@ import org.eclipse.jgit.diff.DiffFormatter
 import java.io.ByteArrayOutputStream
 import java.io.PrintWriter
 import org.eclipse.jgit.util.FileUtils
+import java.io.FileOutputStream
 
 object Generator extends App {
 
@@ -43,24 +44,33 @@ object Generator extends App {
     val ot = new CanonicalTreeParser()
     ot.reset(reader, e._2.getTree())
 
-    val diffs = git.diff().setNewTree(nt).setOldTree(ot).setContextLines(15).call().asScala
+    val diffs = git.diff().setNewTree(nt).setOldTree(ot).setContextLines(5).call().asScala
 
     (sdf.format(e._1.getAuthorIdent().getWhen()), diffs)
   }.map {
     case (data, diffs) =>
       println(s"generating $data")
       diffs.foreach { e =>
-        val file = new File(output, e.getNewPath.replaceAll("""\.htm""", "") + ".markdown")
+        val writer = writerFor(e)
+
         val baos = new ByteArrayOutputStream()
         val formatter = new DiffFormatter(baos)
         formatter.setRepository(repo)
         val formattedOutput = formatter.format(e)
-        val writer = new PrintWriter(file)
-        writer.println("---\n\n---\n\n")
-        writer.println(s"$data\n\n")
+        writer.append(s"$data\n\n")
         writer.append(corrigeDiffs(new String(baos.toByteArray(), "ISO-8859-1")))
         writer.close()
       }
+  }
+
+  def writerFor(e : DiffEntry) = {
+    val file = new File(output, e.getNewPath.replaceAll("""\.htm""", "") + ".markdown")
+    val newFile = !file.exists()
+    val writer = new PrintWriter(new FileOutputStream(file, true))
+    if (newFile) {
+      writer.println("---\n\n---\n\n")
+    }
+    writer
   }
 
   def corrigeDiffs(string : String) = {
