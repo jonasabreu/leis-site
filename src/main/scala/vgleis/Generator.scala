@@ -1,19 +1,15 @@
 package vgleis
 
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import java.io.File
-import org.eclipse.jgit.revwalk.RevWalk
-import org.eclipse.jgit.api.Git
-import scala.collection.JavaConverters._
-import java.util.Date
-import org.eclipse.jgit.treewalk.CanonicalTreeParser
+import java.io.{ByteArrayOutputStream, File, FileOutputStream, PrintWriter}
 import java.text.SimpleDateFormat
-import org.eclipse.jgit.diff.DiffEntry
-import org.eclipse.jgit.diff.DiffFormatter
-import java.io.ByteArrayOutputStream
-import java.io.PrintWriter
+
+import scala.collection.JavaConverters.{asScalaBufferConverter, iterableAsScalaIterableConverter}
+
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.FileUtils
-import java.io.FileOutputStream
 
 object Generator extends App {
 
