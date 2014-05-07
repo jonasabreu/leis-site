@@ -22,9 +22,11 @@ object Generator extends App {
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
 
-  val output = new File("site")
-  FileUtils.delete(output, FileUtils.RECURSIVE)
-  output.mkdir
+  val output = new File("site/federal")
+  if (output.getParentFile().exists()) {
+    FileUtils.delete(output.getParentFile, FileUtils.RECURSIVE)
+  }
+  output.mkdirs
 
   val pathToRepo = "/home/jonas/Documents/workspace-html/leis-federais/.git"
 
@@ -37,7 +39,7 @@ object Generator extends App {
 
   commits.zip(commits.tail).map { e =>
 
-    println(e._1.getFullMessage())
+    print(s"Processando commit ${e._1.getFullMessage()}")
 
     val nt = new CanonicalTreeParser()
     nt.reset(reader, e._1.getTree())
@@ -49,7 +51,7 @@ object Generator extends App {
     (sdf.format(e._1.getAuthorIdent().getWhen()), diffs)
   }.map {
     case (data, diffs) =>
-      println(s"generating $data")
+      println(s"gerando $data")
       diffs.foreach { e =>
         val writer = writerFor(e)
 
@@ -58,7 +60,7 @@ object Generator extends App {
         formatter.setRepository(repo)
         val formattedOutput = formatter.format(e)
         writer.append(s"$data\n\n")
-        writer.append(corrigeDiffs(new String(baos.toByteArray(), "ISO-8859-1")))
+        writer.append(preparaDiffs(new String(baos.toByteArray(), "ISO-8859-1")))
         writer.close()
       }
   }
@@ -73,7 +75,7 @@ object Generator extends App {
     writer
   }
 
-  def corrigeDiffs(string : String) = {
+  def preparaDiffs(string : String) = {
     lineStart.replaceAllIn(tags.replaceAllIn(string, ""), "\n\t")
   }
 
