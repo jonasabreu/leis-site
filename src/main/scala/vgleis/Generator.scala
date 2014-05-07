@@ -1,12 +1,12 @@
 package vgleis
 
-import java.io.{ByteArrayOutputStream, File, FileOutputStream, PrintWriter}
+import java.io.{ ByteArrayOutputStream, File, FileOutputStream, PrintWriter }
 import java.text.SimpleDateFormat
 
-import scala.collection.JavaConverters.{asScalaBufferConverter, iterableAsScalaIterableConverter}
+import scala.collection.JavaConverters.{ asScalaBufferConverter, iterableAsScalaIterableConverter }
 
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.diff.{DiffEntry, DiffFormatter}
+import org.eclipse.jgit.diff.{ DiffEntry, DiffFormatter }
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.FileUtils
@@ -66,9 +66,20 @@ object Generator extends App {
     val newFile = !file.exists()
     val writer = new PrintWriter(new FileOutputStream(file, true))
     if (newFile) {
-      writer.println("---\n\n---\n\n")
+      addFrontMatter(writer, e.getNewPath)
     }
     writer
+  }
+
+  def addFrontMatter(writer : PrintWriter, fileName : String) {
+    writer.println("---")
+    writer.println("layout: lei")
+    writer.println(s"url: ${urlFor(fileName)}")
+    writer.println("---")
+  }
+
+  def urlFor(string : String) = {
+    string
   }
 
   def preparaDiffs(string : String) = {
