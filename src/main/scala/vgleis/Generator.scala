@@ -44,38 +44,47 @@ object Generator extends App {
 
     val diffs = git.diff().setNewTree(nt).setOldTree(ot).setContextLines(5).call().asScala
 
-    (sdf.format(e._1.getAuthorIdent().getWhen()), diffs)
+    (sdf.format(e._1.getAuthorIdent().getWhen()), diffs, e._1.getId().getName())
   }.map {
-    case (data, diffs) =>
+    case (data, diffs, commit) =>
       println(s"gerando $data")
       diffs.foreach { e =>
-        val writer = writerFor(e)
+        val writer = writerFor(e, commit)
 
         val baos = new ByteArrayOutputStream()
         val formatter = new DiffFormatter(baos)
         formatter.setRepository(repo)
         val formattedOutput = formatter.format(e)
-        writer.append(s"$data\n\n")
+        writer.append(diffAsHtml(github(e.getNewPath(), commit), data))
         writer.append(preparaDiffs(new String(baos.toByteArray(), "ISO-8859-1")))
         writer.close()
       }
   }
 
-  def writerFor(e : DiffEntry) = {
+  def diffAsHtml(githubUrl : String, diff : String) = {
+    import scalatags.all._
+    a(href := githubUrl)(diff).toString
+  }
+
+  def writerFor(e : DiffEntry, commit : String) = {
     val file = new File(output, e.getNewPath.replaceAll("""\.htm""", "") + ".markdown")
     val newFile = !file.exists()
     val writer = new PrintWriter(new FileOutputStream(file, true))
     if (newFile) {
-      addFrontMatter(writer, e.getNewPath)
+      addFrontMatter(writer, e.getNewPath, commit)
     }
     writer
   }
 
-  def addFrontMatter(writer : PrintWriter, fileName : String) {
+  def addFrontMatter(writer : PrintWriter, fileName : String, commit : String) {
     writer.println("---")
     writer.println("layout: lei")
     writer.println(s"url: ${urlFor(fileName)}")
     writer.println("---")
+  }
+
+  def github(fileName : String, commit : String) = {
+    s"https://github.com/jonasabreu/leis-federais/blob/$commit/$fileName"
   }
 
   def urlFor(string : String) = {
