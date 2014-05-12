@@ -2,14 +2,14 @@ package vgleis
 
 import java.io.{ ByteArrayOutputStream, File, FileOutputStream, PrintWriter }
 import java.text.SimpleDateFormat
-
 import scala.collection.JavaConverters.{ asScalaBufferConverter, iterableAsScalaIterableConverter }
-
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.{ DiffEntry, DiffFormatter }
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.FileUtils
+import org.eclipse.jgit.lib.ObjectReader
+import org.eclipse.jgit.revwalk.RevCommit
 
 object Generator extends App {
 
@@ -29,7 +29,7 @@ object Generator extends App {
   val repo = new FileRepositoryBuilder().setGitDir(new File(pathToRepo)).build
   val git = new Git(repo)
 
-  val commits = git.log().call().asScala.toList.take(20)
+  val commits = git.log().call().asScala.toList.take(2)
 
   val reader = repo.newObjectReader()
 
@@ -37,18 +37,15 @@ object Generator extends App {
 
     print(s"Processando commit ${e._1.getFullMessage()}")
 
-    val nt = new CanonicalTreeParser()
-    nt.reset(reader, e._1.getTree())
-    val ot = new CanonicalTreeParser()
-    ot.reset(reader, e._2.getTree())
-
-    val diffs = git.diff().setNewTree(nt).setOldTree(ot).setContextLines(5).call().asScala
+    val diffs = generateDiffs(reader, e);
 
     (sdf.format(e._1.getAuthorIdent().getWhen()), diffs, e._1.getId().getName())
   }.map {
     case (data, diffs, commit) =>
       println(s"gerando $data")
       diffs.foreach { e =>
+        println(e.getClass())
+
         val writer = writerFor(e, commit)
 
         val baos = new ByteArrayOutputStream()
@@ -74,6 +71,15 @@ object Generator extends App {
       addFrontMatter(writer, e.getNewPath, commit)
     }
     writer
+  }
+
+  def generateDiffs(reader : ObjectReader, e : (RevCommit, RevCommit)) = {
+    val nt = new CanonicalTreeParser()
+    nt.reset(reader, e._1.getTree())
+    val ot = new CanonicalTreeParser()
+    ot.reset(reader, e._2.getTree())
+
+    git.diff().setShowNameAndStatusOnly(true).setNewTree(nt).setOldTree(ot).setContextLines(5).call().asScala
   }
 
   def addFrontMatter(writer : PrintWriter, fileName : String, commit : String) {
