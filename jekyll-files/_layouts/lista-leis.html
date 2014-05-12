@@ -1,0 +1,13 @@
+---
+layout: default
+---
+
+<ul>
+{% for p in site.pages %}
+
+	{% if p.tipo == page.tipoLei %}
+	<li><a href="{{ p.url }}">{{p.title}} ({{p.originalUrl}})</a></li>
+	{% endif %}
+	
+{% endfor %}
+</ul>

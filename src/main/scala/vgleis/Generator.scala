@@ -10,11 +10,14 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.FileUtils
 import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.revwalk.RevCommit
+import scala.io.Source
+import java.util.Scanner
 
 object Generator extends App {
 
   val tags = "<[^>]+>".r
   val lineStart = "(\n|^)".r
+  val titleTag = "(?i)<title[^>]*>([^<]*)</title>".r
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
 
@@ -22,9 +25,10 @@ object Generator extends App {
   if (output.getParentFile().exists()) {
     FileUtils.delete(output.getParentFile, FileUtils.RECURSIVE)
   }
-  output.mkdirs
+  prepareOutput(output)
 
-  val pathToRepo = "/home/jonas/Documents/workspace-html/leis-federais/.git"
+  val basePath = "/home/jonas/Documents/workspace-html/leis-federais"
+  val pathToRepo = s"${basePath}/.git"
 
   val repo = new FileRepositoryBuilder().setGitDir(new File(pathToRepo)).build
   val git = new Git(repo)
@@ -44,7 +48,6 @@ object Generator extends App {
     case (data, diffs, commit) =>
       println(s"gerando $data")
       diffs.foreach { e =>
-        println(e.getClass())
 
         val writer = writerFor(e, commit)
 
@@ -85,8 +88,15 @@ object Generator extends App {
   def addFrontMatter(writer : PrintWriter, fileName : String, commit : String) {
     writer.println("---")
     writer.println("layout: lei")
-    writer.println(s"url: ${urlFor(fileName)}")
+    writer.println(s"originalUrl: ${urlFor(fileName)}")
+    writer.println("tipo: federal")
+    writer.println(s"title: ${title(fileName)}")
     writer.println("---")
+  }
+
+  def title(fileName : String) = {
+    val content = new Scanner(new File(s"$basePath/$fileName")).useDelimiter("$$").next()
+    titleTag.findAllMatchIn(content).map(_.group(1)).next
   }
 
   def github(fileName : String, commit : String) = {
@@ -99,6 +109,17 @@ object Generator extends App {
 
   def preparaDiffs(string : String) = {
     lineStart.replaceAllIn(tags.replaceAllIn(string, ""), "\n\t")
+  }
+
+  def prepareOutput(output : File) = {
+    output.mkdirs
+    val listagem = new File(output, "index.html")
+    val writer = new PrintWriter(listagem)
+    writer.println("---")
+    writer.println("layout: lista-leis")
+    writer.println("tipoLei: federal")
+    writer.println("---")
+    writer.close
   }
 
 }

@@ -9,7 +9,7 @@ cp -Rv jekyll-files/* site/.
 echo "====================== carregando deps jekyll e rvm"
 cd site
 rvm use 2.1.0
-bundle update
+#bundle update
 
 echo "====================== rodando jekyll"
 jekyll server
