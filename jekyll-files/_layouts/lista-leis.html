@@ -3,7 +3,7 @@ layout: default
 ---
 
 <ul>
-{% for p in site.pages %}
+{% for p in site.pages | sort p.title %}
 
 	{% if p.tipo == page.tipoLei %}
 	<li><a href="{{ p.url }}">{{p.title}} ({{p.originalUrl}})</a></li>

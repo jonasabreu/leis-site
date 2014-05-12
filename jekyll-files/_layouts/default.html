@@ -7,10 +7,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" media="screen" href="/css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" media="screen" href="/css/style.css" type="text/css" />
-	<link href="{{ page.feed }}" rel="alternate" title="{{ site.title }}" type="application/atom+xml" />
+	<link href="{{ page.feed }}" rel="alternate" title="Histórico da lei {{ page.title }}" type="application/atom+xml" />
   </head>
   <body>
 		<div id="content">
+		  	<a href="{{page.feed}}">feed</a><br>
 			{{ content }}
 		</div>
   </body>

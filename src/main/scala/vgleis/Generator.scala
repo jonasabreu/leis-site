@@ -91,6 +91,7 @@ object Generator extends App {
     writer.println(s"originalUrl: ${urlFor(fileName)}")
     writer.println("tipo: federal")
     writer.println(s"title: ${title(fileName)}")
+    writer.println(s"feed: /federal/$fileName.xml")
     writer.println("---")
   }
 
@@ -108,7 +109,7 @@ object Generator extends App {
   }
 
   def preparaDiffs(string : String) = {
-    lineStart.replaceAllIn(tags.replaceAllIn(string, ""), "\n\t")
+    lineStart.replaceAllIn(tags.replaceAllIn(string, ""), "\n\t\t")
   }
 
   def prepareOutput(output : File) = {
@@ -118,6 +119,7 @@ object Generator extends App {
     writer.println("---")
     writer.println("layout: lista-leis")
     writer.println("tipoLei: federal")
+    writer.println("feed: /federal/federal.xml")
     writer.println("---")
     writer.close
   }
