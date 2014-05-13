@@ -18,19 +18,21 @@ object Generator extends App {
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
 
-  val output = new File("site/federal")
-  if (output.getParentFile().exists()) {
-    FileUtils.delete(output.getParentFile, FileUtils.RECURSIVE)
+  val output = new File("site")
+  if (output.exists()) {
+    FileUtils.delete(output, FileUtils.RECURSIVE)
   }
-  prepareOutput(output)
+  prepareOutput(output, "federal")
 
   val basePath = "/home/jonas/Documents/workspace-html/leis-federais"
   val pathToRepo = s"${basePath}/.git"
 
+  val feeds = new Feeds(output)
+
   val repo = new FileRepositoryBuilder().setGitDir(new File(pathToRepo)).build
   val git = new Git(repo)
 
-  val commits = git.log().call().asScala.toList.take(2)
+  val commits = git.log().call().asScala.toList.take(3)
 
   val reader = repo.newObjectReader()
 
@@ -49,8 +51,10 @@ object Generator extends App {
 
         val fileName = e.getNewPath()
 
+        feeds.add("federal", data, fileName)
+
         if (!map.contains(fileName)) {
-          map += fileName -> new Law(output, basePath, fileName)
+          map += fileName -> new Law(new File(output, "federal"), basePath, fileName)
         }
 
         val baos = new ByteArrayOutputStream()
@@ -64,6 +68,8 @@ object Generator extends App {
       map
   }.foreach(_._2.serialize)
 
+  feeds.serialize
+
   def generateDiffs(reader : ObjectReader, e : (RevCommit, RevCommit)) = {
     val nt = new CanonicalTreeParser()
     nt.reset(reader, e._1.getTree())
@@ -73,7 +79,8 @@ object Generator extends App {
     git.diff().setShowNameAndStatusOnly(true).setNewTree(nt).setOldTree(ot).setContextLines(5).call().asScala
   }
 
-  def prepareOutput(output : File) = {
+  def prepareOutput(base : File, tipo : String) = {
+    val output = new File(base, tipo)
     output.mkdirs
     val listagem = new File(output, "index.html")
     val writer = new PrintWriter(listagem)
