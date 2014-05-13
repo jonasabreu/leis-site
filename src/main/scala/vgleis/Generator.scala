@@ -12,12 +12,9 @@ import org.eclipse.jgit.lib.ObjectReader
 import org.eclipse.jgit.revwalk.RevCommit
 import scala.io.Source
 import java.util.Scanner
+import scala.collection.mutable.Map
 
 object Generator extends App {
-
-  val tags = "<[^>]+>".r
-  val lineStart = "(\n|^)".r
-  val titleTag = "(?i)<title[^>]*>([^<]*)</title>".r
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
 
@@ -44,37 +41,28 @@ object Generator extends App {
     val diffs = generateDiffs(reader, e);
 
     (sdf.format(e._1.getAuthorIdent().getWhen()), diffs, e._1.getId().getName())
-  }.map {
-    case (data, diffs, commit) =>
+  }.foldLeft(Map[String, Law]()) {
+    case (map, (data, diffs, commit)) =>
       println(s"gerando $data")
+
       diffs.foreach { e =>
 
-        val writer = writerFor(e, commit)
+        val fileName = e.getNewPath()
+
+        if (!map.contains(fileName)) {
+          map += fileName -> new Law(output, basePath, fileName)
+        }
 
         val baos = new ByteArrayOutputStream()
         val formatter = new DiffFormatter(baos)
         formatter.setRepository(repo)
         val formattedOutput = formatter.format(e)
-        writer.append(diffAsHtml(github(e.getNewPath(), commit), data))
-        writer.append(preparaDiffs(new String(baos.toByteArray(), "ISO-8859-1")))
-        writer.close()
+
+        map(fileName).
+          addDiff(commit, data, new String(baos.toByteArray(), "ISO-8859-1"))
       }
-  }
-
-  def diffAsHtml(githubUrl : String, diff : String) = {
-    import scalatags.all._
-    a(href := githubUrl)(diff).toString
-  }
-
-  def writerFor(e : DiffEntry, commit : String) = {
-    val file = new File(output, e.getNewPath.replaceAll("""\.htm""", "") + ".markdown")
-    val newFile = !file.exists()
-    val writer = new PrintWriter(new FileOutputStream(file, true))
-    if (newFile) {
-      addFrontMatter(writer, e.getNewPath, commit)
-    }
-    writer
-  }
+      map
+  }.foreach(_._2.serialize)
 
   def generateDiffs(reader : ObjectReader, e : (RevCommit, RevCommit)) = {
     val nt = new CanonicalTreeParser()
@@ -83,33 +71,6 @@ object Generator extends App {
     ot.reset(reader, e._2.getTree())
 
     git.diff().setShowNameAndStatusOnly(true).setNewTree(nt).setOldTree(ot).setContextLines(5).call().asScala
-  }
-
-  def addFrontMatter(writer : PrintWriter, fileName : String, commit : String) {
-    writer.println("---")
-    writer.println("layout: lei")
-    writer.println(s"originalUrl: ${urlFor(fileName)}")
-    writer.println("tipo: federal")
-    writer.println(s"title: ${title(fileName)}")
-    writer.println(s"feed: /federal/$fileName.xml")
-    writer.println("---")
-  }
-
-  def title(fileName : String) = {
-    val content = new Scanner(new File(s"$basePath/$fileName")).useDelimiter("$$").next()
-    titleTag.findAllMatchIn(content).map(_.group(1)).next
-  }
-
-  def github(fileName : String, commit : String) = {
-    s"https://github.com/jonasabreu/leis-federais/blob/$commit/$fileName"
-  }
-
-  def urlFor(string : String) = {
-    string
-  }
-
-  def preparaDiffs(string : String) = {
-    lineStart.replaceAllIn(tags.replaceAllIn(string, ""), "\n\t\t")
   }
 
   def prepareOutput(output : File) = {
