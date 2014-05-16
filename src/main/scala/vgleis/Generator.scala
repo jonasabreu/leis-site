@@ -17,7 +17,7 @@ import scala.collection.mutable.Map
 object Env {
   private val local = new File("/home/jonas").exists
   val basePath = if (local) "/home/jonas/Documents/workspace-html/leis-federais" else "/home/ubuntu/leis"
-
+  def cut(list : List[RevCommit]) = if (local) list.take(3) else list
 }
 
 object Generator extends App {
@@ -39,7 +39,7 @@ object Generator extends App {
   val repo = new FileRepositoryBuilder().setGitDir(new File(pathToRepo)).build
   val git = new Git(repo)
 
-  val commits = git.log().call().asScala.toList.take(3)
+  val commits = cut(git.log().call().asScala.toList)
 
   val reader = repo.newObjectReader()
 
