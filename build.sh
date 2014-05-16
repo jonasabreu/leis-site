@@ -1,5 +1,7 @@
 #! /bin/bash --login
 
+set -e
+
 echo "====================== Rodando gerador"
 sbt run
 
