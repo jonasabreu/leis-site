@@ -3,7 +3,7 @@
 set -e
 
 echo "====================== Carregando rvm"
-source ~/.rvm/scripts/rvm
+source $HOME/.rvm/scripts/rvm
 
 echo "====================== Rodando gerador"
 /usr/bin/sbt -Dsbt.log.noformat=true run
