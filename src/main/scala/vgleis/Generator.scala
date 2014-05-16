@@ -14,7 +14,15 @@ import scala.io.Source
 import java.util.Scanner
 import scala.collection.mutable.Map
 
+object Env {
+  private val local = new File("/home/jonas").exists
+  val basePath = if (local) "/home/jonas/Documents/workspace-html/leis-federais" else "/home/ubuntu/leis"
+
+}
+
 object Generator extends App {
+
+  import Env._
 
   val sdf = new SimpleDateFormat("yyyy-MM-dd")
 
@@ -24,7 +32,6 @@ object Generator extends App {
   }
   prepareOutput(output, "federal")
 
-  val basePath = "/home/jonas/Documents/workspace-html/leis-federais"
   val pathToRepo = s"${basePath}/.git"
 
   val feeds = new Feeds(output)
