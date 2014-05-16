@@ -2,6 +2,8 @@
 
 set -e
 
+source ~/.rvm/scripts/rvm
+
 echo "====================== Rodando gerador"
 /usr/bin/sbt -Dsbt.log.noformat=true run
 
