@@ -2,6 +2,7 @@
 
 set -e
 
+echo "====================== Carregando rvm"
 source ~/.rvm/scripts/rvm
 
 echo "====================== Rodando gerador"
