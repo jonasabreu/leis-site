@@ -3,7 +3,7 @@
 set -e
 
 echo "====================== Rodando gerador"
-sbt run
+/usr/bin/sbt run
 
 echo "====================== adicionando arquivos jekyll"
 cp -Rv jekyll-files/* site/.
