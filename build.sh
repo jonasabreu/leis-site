@@ -17,7 +17,7 @@ rvm use 2.1.0
 bundle update
 
 echo "====================== rodando jekyll"
-jekyll server
+jekyll build
 
 echo "====================== deploy"
 
