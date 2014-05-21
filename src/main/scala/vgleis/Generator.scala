@@ -17,7 +17,7 @@ import scala.collection.mutable.Map
 object Env {
   private val local = new File("/home/jonas").exists
   val basePath = if (local) "/home/jonas/Documents/workspace-html/leis-federais" else "/home/ubuntu/leis"
-  def cut(list : List[RevCommit]) = if (local) list.take(3) else list
+  def cut(list : List[RevCommit]) = if (local) list /*.take(3)*/ else list
 }
 
 object Generator extends App {
@@ -64,13 +64,14 @@ object Generator extends App {
           map += fileName -> new Law(new File(output, "federal"), basePath, fileName)
         }
 
-        val baos = new ByteArrayOutputStream()
-        val formatter = new DiffFormatter(baos)
-        formatter.setRepository(repo)
-        val formattedOutput = formatter.format(e)
-
         map(fileName).
-          addDiff(commit, data, new String(baos.toByteArray(), "ISO-8859-1"))
+          addDiff(commit, data, () => {
+            val baos = new ByteArrayOutputStream()
+            val formatter = new DiffFormatter(baos)
+            formatter.setRepository(repo)
+            val formattedOutput = formatter.format(e)
+            new String(baos.toByteArray(), "ISO-8859-1")
+          })
       }
       map
   }.foreach(_._2.serialize)
